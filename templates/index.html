@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VeritasAI Pro - Detector y Humanizador de Inteligencia Artificial</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at 15% 15%, #0f172a 0%, #030712 100%);
+      min-height: 100vh;
+      color: #e2e8f0;
+    }
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .glass-card {
+      background: rgba(17, 24, 39, 0.75);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+    }
+    .glass-input {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    .glass-input:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+    }
+    /* Heatmap sentence highlighting */
+    .sent-danger {
+      background-color: rgba(239, 68, 68, 0.25);
+      border-bottom: 2px solid #ef4444;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 2px 4px;
+      border-radius: 4px;
+      margin: 0 1px;
+    }
+    .sent-danger:hover {
+      background-color: rgba(239, 68, 68, 0.45);
+    }
+    .sent-warning {
+      background-color: rgba(245, 158, 11, 0.22);
+      border-bottom: 2px solid #f59e0b;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 2px 4px;
+      border-radius: 4px;
+      margin: 0 1px;
+    }
+    .sent-warning:hover {
+      background-color: rgba(245, 158, 11, 0.40);
+    }
+    .sent-safe {
+      background-color: rgba(16, 185, 129, 0.15);
+      border-bottom: 2px solid #10b981;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 2px 4px;
+      border-radius: 4px;
+      margin: 0 1px;
+    }
+    .sent-safe:hover {
+      background-color: rgba(16, 185, 129, 0.30);
+    }
+    /* Tab buttons */
+    .nav-tab-active {
+      background: linear-gradient(135deg, #4f46e5 0%, #06b6d4 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 15px rgba(79, 70, 229, 0.4);
+    }
+    .nav-tab-inactive {
+      background: rgba(30, 41, 59, 0.6);
+      color: #94a3b8;
+    }
+    .nav-tab-inactive:hover {
+      background: rgba(51, 65, 85, 0.8);
+      color: #f1f5f9;
+    }
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b0f19;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #1f2937;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #374151;
+    }
+  </style>
+</head>
+<body class="p-3 md:p-6 flex flex-col justify-between">
+
+  <!-- Header Bar -->
+  <header class="max-w-7xl mx-auto w-full mb-6">
+    <div class="glass-card rounded-2xl p-4 md:px-6 flex flex-wrap items-center justify-between gap-4">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 flex items-center justify-center text-white text-2xl shadow-lg shadow-indigo-500/30">
+          <i class="fa-solid fa-brain"></i>
+        </div>
+        <div>
+          <h1 class="text-xl md:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+            Veritas<span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400">AI</span>
+            <span class="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">v3.0 Ultra</span>
+          </h1>
+          <p class="text-xs text-slate-400">Detector Multicapa & Humanizador Antidetección de IA</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs (Detector vs Humanizador) -->
+      <div class="flex items-center gap-2 bg-slate-900/90 p-1.5 rounded-xl border border-slate-800">
+        <button id="tab-btn-detector" onclick="switchTab('detector')" class="nav-tab-active px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center gap-2 transition duration-200">
+          <i class="fa-solid fa-shield-halved"></i>
+          <span>Detector de IA</span>
+        </button>
+        <button id="tab-btn-humanizer" onclick="switchTab('humanizer')" class="nav-tab-inactive px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center gap-2 transition duration-200">
+          <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
+          <span>Humanizador de Texto</span>
+        </button>
+      </div>
+
+      <!-- Quick status indicator -->
+      <div class="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-800/60 border border-slate-700/50 text-xs text-slate-300">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        Red Neuronal: <strong class="text-emerald-400">Activa (Antievasión)</strong>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 1: DETECTOR DE IA                                                     -->
+  <!-- ========================================================================= -->
+  <main id="view-detector" class="max-w-7xl mx-auto w-full flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+    <!-- Left Column: Input and Configuration (7 cols) -->
+    <section class="lg:col-span-7 flex flex-col gap-4">
+      <div class="glass-card rounded-2xl p-5 md:p-6 flex flex-col flex-1">
+        
+        <!-- Action Toolbar -->
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-slate-200">Texto a Analizar</span>
+            <span id="char-word-counter" class="text-xs text-slate-400 font-mono">(0 palabras | 0 caracteres)</span>
+          </div>
+
+          <!-- Samples Dropdown / Buttons -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400 hidden sm:inline">Ejemplos:</span>
+            <button onclick="loadSample('chatgpt')" class="text-xs px-2.5 py-1 rounded-md bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 transition flex items-center gap-1">
+              <i class="fa-solid fa-robot"></i> ChatGPT
+            </button>
+            <button onclick="loadSample('gemini')" class="text-xs px-2.5 py-1 rounded-md bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-300 border border-cyan-500/30 transition flex items-center gap-1">
+              <i class="fa-brands fa-google"></i> Gemini
+            </button>
+            <button onclick="loadSample('human')" class="text-xs px-2.5 py-1 rounded-md bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 transition flex items-center gap-1">
+              <i class="fa-solid fa-user"></i> Humano
+            </button>
+          </div>
+        </div>
+
+        <!-- Textarea Input Area -->
+        <div class="relative flex-1 min-h-[300px]">
+          <textarea 
+            id="input-text" 
+            placeholder="Pega aquí el texto que deseas analizar (ensayos, tareas, artículos, correos, noticias)... Mínimo 10 palabras. O arrastra un archivo PDF, Word o TXT abajo." 
+            class="w-full h-full min-h-[300px] p-4 rounded-xl glass-input text-slate-100 placeholder-slate-500 resize-y focus:outline-none text-sm md:text-base leading-relaxed font-normal"
+            oninput="updateCounters()"
+          ></textarea>
+        </div>
+
+        <!-- File Upload Drag & Drop Bar -->
+        <div class="mt-4 pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-2">
+            <label class="cursor-pointer text-xs px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700/80 text-slate-300 border border-slate-700 flex items-center gap-2 transition">
+              <i class="fa-solid fa-file-arrow-up text-indigo-400"></i>
+              <span>Cargar PDF / Word / TXT</span>
+              <input type="file" id="file-input" accept=".txt,.pdf,.docx,.doc" class="hidden" onchange="handleFileUpload(event)">
+            </label>
+            <span id="file-status" class="text-xs text-slate-400 italic"></span>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="clearText()" class="text-xs px-3 py-2 rounded-lg bg-slate-800/60 hover:bg-slate-700/60 text-slate-400 hover:text-slate-200 transition">
+              <i class="fa-solid fa-trash-can mr-1"></i> Borrar
+            </button>
+            <button id="btn-detect" onclick="runDetection()" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 hover:from-indigo-500 hover:to-cyan-400 text-white font-semibold text-sm shadow-lg shadow-indigo-600/30 transition transform active:scale-95 flex items-center gap-2">
+              <i class="fa-solid fa-magnifying-glass-chart"></i>
+              <span>Detectar IA</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Feature cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div class="glass-card rounded-xl p-3 flex items-start gap-3">
+          <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-chart-line text-xs"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-semibold text-slate-200">Perplejidad & Entropía</h4>
+            <p class="text-[11px] text-slate-400 leading-snug">Calcula la entropía de Shannon y previsibilidad de los tokens generados.</p>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-xl p-3 flex items-start gap-3">
+          <div class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-wave-square text-xs"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-semibold text-slate-200">Burstiness (Cadencia)</h4>
+            <p class="text-[11px] text-slate-400 leading-snug">Detecta la variación no lineal entre oraciones cortas y largas.</p>
+          </div>
+        </div>
+
+        <div class="glass-card rounded-xl p-3 flex items-start gap-3">
+          <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center shrink-0">
+            <i class="fa-solid fa-fingerprint text-xs"></i>
+          </div>
+          <div>
+            <h4 class="text-xs font-semibold text-slate-200">Firmas de Modelos</h4>
+            <p class="text-[11px] text-slate-400 leading-snug">Identifica expresiones típicas de ChatGPT, Gemini, Claude y Perplexity.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Column: Results & Analytics Dashboard (5 cols) -->
+    <section class="lg:col-span-5 flex flex-col gap-4">
+      
+      <!-- Initial Placeholder State -->
+      <div id="results-placeholder" class="glass-card rounded-2xl p-8 flex flex-col items-center justify-center text-center h-full min-h-[460px]">
+        <div class="w-20 h-20 rounded-2xl bg-slate-800/50 border border-slate-700/50 flex items-center justify-center text-indigo-400 text-3xl mb-4">
+          <i class="fa-solid fa-microchip"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-200 mb-2">Esperando análisis</h3>
+        <p class="text-sm text-slate-400 max-w-sm mb-6">
+          Ingresa un texto o carga un archivo en el panel izquierdo y presiona <strong class="text-indigo-400">"Detectar IA"</strong> para ejecutar la red neuronal y el escaneo estocástico.
+        </p>
+        <div class="flex flex-wrap justify-center gap-2">
+          <span class="text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700/50">Detección Multilingüe</span>
+          <span class="text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700/50">Mapa de Calor Oración x Oración</span>
+          <span class="text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-400 border border-slate-700/50">100% Offline y Seguro</span>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="results-loading" class="hidden glass-card rounded-2xl p-8 flex flex-col items-center justify-center text-center h-full min-h-[460px]">
+        <div class="relative w-16 h-16 mb-4">
+          <div class="absolute inset-0 rounded-full border-4 border-indigo-500/20"></div>
+          <div class="absolute inset-0 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin"></div>
+        </div>
+        <h3 class="text-base font-semibold text-slate-200 mb-1">Analizando texto...</h3>
+        <p class="text-xs text-slate-400">Extrayendo perplejidad, burstiness y ejecutando red neuronal...</p>
+      </div>
+
+      <!-- Active Results Container -->
+      <div id="results-container" class="hidden flex flex-col gap-4">
+        
+        <!-- Score & Verdict Hero Card -->
+        <div class="glass-card rounded-2xl p-5 md:p-6 border-t-4" id="verdict-card-border">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs uppercase tracking-wider font-bold text-slate-400">Veredicto General</span>
+            <span id="verdict-badge" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide">--</span>
+          </div>
+
+          <!-- Gauge / Percentage Main Display -->
+          <div class="flex items-center gap-6">
+            <div class="relative w-28 h-28 flex items-center justify-center">
+              <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="40" stroke="#1f2937" stroke-width="9" fill="transparent"/>
+                <circle id="gauge-circle" cx="50" cy="50" r="40" stroke="#6366f1" stroke-width="9" stroke-linecap="round" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="251.2" class="transition-all duration-1000 ease-out"/>
+              </svg>
+              <div class="absolute inset-0 flex flex-col items-center justify-center">
+                <span id="ai-percent-display" class="text-2xl font-black text-white font-mono">0%</span>
+                <span class="text-[9px] uppercase font-bold text-slate-400">IA</span>
+              </div>
+            </div>
+
+            <div class="flex-1">
+              <div class="flex items-center justify-between text-xs text-slate-300 mb-1">
+                <span>Probabilidad de IA:</span>
+                <strong id="ai-percent-text" class="text-rose-400 font-mono">0%</strong>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2 mb-3">
+                <div id="ai-progress-bar" class="bg-gradient-to-r from-amber-500 to-rose-500 h-2 rounded-full transition-all duration-700" style="width: 0%"></div>
+              </div>
+
+              <div class="flex items-center justify-between text-xs text-slate-300 mb-1">
+                <span>Probabilidad Humana:</span>
+                <strong id="human-percent-text" class="text-emerald-400 font-mono">100%</strong>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2">
+                <div id="human-progress-bar" class="bg-gradient-to-r from-cyan-500 to-emerald-500 h-2 rounded-full transition-all duration-700" style="width: 100%"></div>
+              </div>
+            </div>
+          </div>
+
+          <p id="verdict-description" class="mt-4 text-xs md:text-sm text-slate-300 leading-relaxed bg-slate-900/60 p-3 rounded-xl border border-slate-800">
+            --
+          </p>
+
+          <!-- Action pill to Humanize if AI was detected -->
+          <div id="humanize-suggestion-bar" class="mt-3 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
+            <span class="text-xs text-amber-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> ¿Quieres que suene 100% humano?
+            </span>
+            <button onclick="sendToHumanizer()" class="text-xs px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition flex items-center gap-1">
+              <span>Humanizar Texto</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+
+          <!-- Model attribution pill -->
+          <div class="mt-3 flex items-center justify-between text-xs pt-2 border-t border-slate-800/80">
+            <span class="text-slate-400">Firma lingüística dominante:</span>
+            <span id="model-attribution" class="font-semibold text-indigo-300 bg-indigo-500/10 px-2 py-0.5 rounded border border-indigo-500/20">--</span>
+          </div>
+        </div>
+
+        <!-- Diagnostic Metrics Grid -->
+        <div class="grid grid-cols-2 gap-3">
+          <!-- Burstiness -->
+          <div class="glass-card rounded-xl p-3">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[11px] font-medium text-slate-400">Burstiness (Cadencia)</span>
+              <i class="fa-solid fa-wave-square text-xs text-indigo-400"></i>
+            </div>
+            <div id="metric-burstiness-val" class="text-base font-bold text-white font-mono">0.00</div>
+            <div id="metric-burstiness-status" class="text-[10px] text-slate-400 mt-0.5">--</div>
+          </div>
+
+          <!-- Perplejidad -->
+          <div class="glass-card rounded-xl p-3">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[11px] font-medium text-slate-400">Perplejidad Léxica</span>
+              <i class="fa-solid fa-chart-line text-xs text-cyan-400"></i>
+            </div>
+            <div id="metric-perplexity-val" class="text-base font-bold text-white font-mono">0.00</div>
+            <div id="metric-perplexity-status" class="text-[10px] text-slate-400 mt-0.5">--</div>
+          </div>
+
+          <!-- Riqueza Léxica -->
+          <div class="glass-card rounded-xl p-3">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[11px] font-medium text-slate-400">Riqueza Léxica (TTR)</span>
+              <i class="fa-solid fa-spell-check text-xs text-emerald-400"></i>
+            </div>
+            <div id="metric-ttr-val" class="text-base font-bold text-white font-mono">0.00</div>
+            <div id="metric-ttr-status" class="text-[10px] text-slate-400 mt-0.5">Palabras únicas</div>
+          </div>
+
+          <!-- Frases Cliché -->
+          <div class="glass-card rounded-xl p-3">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[11px] font-medium text-slate-400">Clichés de IA</span>
+              <i class="fa-solid fa-triangle-exclamation text-xs text-amber-400"></i>
+            </div>
+            <div id="metric-cliche-val" class="text-base font-bold text-white font-mono">0 detectadas</div>
+            <div id="metric-cliche-status" class="text-[10px] text-slate-400 mt-0.5">Patrones sintéticos</div>
+          </div>
+        </div>
+
+        <!-- Indicadores Forenses Avanzados -->
+        <div class="glass-card rounded-xl p-3.5 border border-indigo-500/20 bg-slate-900/50">
+          <div class="text-[11px] font-bold text-indigo-300 uppercase tracking-wider mb-2 flex items-center justify-between">
+            <span><i class="fa-solid fa-microscope mr-1 text-indigo-400"></i> Análisis Forense Profundo</span>
+            <span class="text-[10px] text-slate-400 font-normal">30 dimensiones</span>
+          </div>
+          <div class="grid grid-cols-4 gap-2 text-center text-xs">
+            <div class="bg-slate-800/60 p-2 rounded-lg border border-slate-700/40">
+              <span class="text-[10px] text-slate-400 block">Amplitud Oraciones</span>
+              <strong id="forensic-range" class="text-slate-100 font-mono text-xs">--</strong>
+            </div>
+            <div class="bg-slate-800/60 p-2 rounded-lg border border-slate-700/40">
+              <span class="text-[10px] text-slate-400 block">Entropía Puntuación</span>
+              <strong id="forensic-punct" class="text-cyan-300 font-mono text-xs">--</strong>
+            </div>
+            <div class="bg-slate-800/60 p-2 rounded-lg border border-slate-700/40">
+              <span class="text-[10px] text-slate-400 block">1ra Persona</span>
+              <strong id="forensic-1st" class="text-emerald-300 font-mono text-xs">--</strong>
+            </div>
+            <div class="bg-slate-800/60 p-2 rounded-lg border border-slate-700/40">
+              <span class="text-[10px] text-slate-400 block">Yule's K</span>
+              <strong id="forensic-yule" class="text-purple-300 font-mono text-xs">--</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Heatmap / Granular Sentence Breakdown Tab -->
+        <div class="glass-card rounded-2xl p-5 flex flex-col gap-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-highlighter text-indigo-400"></i>
+              Mapa de Calor por Oración
+            </h3>
+            
+            <div class="flex items-center gap-2 text-[10px]">
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-rose-500/80"></span> IA</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-amber-500/80"></span> Asistido</span>
+              <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-emerald-500/80"></span> Humano</span>
+            </div>
+          </div>
+
+          <!-- Sentence highlight render box -->
+          <div id="heatmap-render-box" class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 text-xs md:text-sm leading-relaxed max-h-[280px] overflow-y-auto">
+            <!-- Dynamically populated -->
+          </div>
+
+          <div class="flex items-center justify-between text-xs text-slate-400 pt-2 border-t border-slate-800">
+            <div id="sentence-stats-summary">0 oraciones analizadas</div>
+            <div class="flex items-center gap-2">
+              <button onclick="downloadPdfReport()" class="text-xs px-3 py-1.5 rounded-lg bg-indigo-600/80 hover:bg-indigo-600 text-white font-medium transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-file-pdf text-rose-300"></i>
+                <span>Descargar PDF</span>
+              </button>
+              <button onclick="copyReport()" class="text-xs px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition flex items-center gap-1">
+                <i class="fa-solid fa-copy"></i>
+                <span>Copiar Reporte</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- TAB 2: HUMANIZADOR DE TEXTO INTELIGENTE                                   -->
+  <!-- ========================================================================= -->
+  <main id="view-humanizer" class="hidden max-w-7xl mx-auto w-full flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    
+    <!-- Left Column: Input for Humanization (6 cols) -->
+    <section class="lg:col-span-6 flex flex-col gap-4">
+      <div class="glass-card rounded-2xl p-5 md:p-6 flex flex-col flex-1">
+        
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-semibold text-slate-200">Texto Original de IA</span>
+            <span id="h-char-word-counter" class="text-xs text-slate-400 font-mono">(0 palabras)</span>
+          </div>
+
+          <button onclick="pasteFromDetector()" class="text-xs px-3 py-1 rounded-md bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 transition flex items-center gap-1">
+            <i class="fa-solid fa-paste"></i> Pegar del Detector
+          </button>
+        </div>
+
+        <!-- Input Area -->
+        <textarea 
+          id="humanize-input-text" 
+          placeholder="Pega aquí el texto que generó ChatGPT, Gemini o Claude para transformarlo en texto con cadencia humana natural que pase desapercibido ante cualquier detector..." 
+          class="w-full h-[280px] p-4 rounded-xl glass-input text-slate-100 placeholder-slate-500 resize-y focus:outline-none text-sm md:text-base leading-relaxed font-normal"
+          oninput="updateHumanizerCounters()"
+        ></textarea>
+
+        <!-- Mode & Settings Toolbar -->
+        <div class="mt-4 pt-3 border-t border-slate-800 flex flex-col gap-3">
+          
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <label class="text-xs font-semibold text-slate-300">Modo de Humanización:</label>
+              <select id="humanize-mode" class="bg-slate-800 text-xs text-slate-200 border border-slate-700 rounded-lg px-2.5 py-1.5 focus:outline-none">
+                <option value="stealth" selected>🔥 Stealth (100% Antidetección)</option>
+                <option value="academic">🎓 Académico Natural</option>
+                <option value="conversational">💬 Conversacional / Espontáneo</option>
+              </select>
+            </div>
+
+            <!-- Optional API Key Toggle -->
+            <button onclick="toggleApiKeyInput()" class="text-xs text-slate-400 hover:text-indigo-300 flex items-center gap-1 transition">
+              <i class="fa-solid fa-key text-[10px]"></i> Clave Groq (Opcional)
+            </button>
+          </div>
+
+          <!-- Collapsible API Key Input -->
+          <div id="api-key-container" class="hidden">
+            <input 
+              type="password" 
+              id="groq-api-key" 
+              placeholder="gsk_... (Clave API gratuita de Groq para reescritura con Llama-3.3 70B, opcional)" 
+              class="w-full text-xs p-2.5 rounded-lg glass-input text-slate-200 placeholder-slate-500 focus:outline-none font-mono"
+            >
+          </div>
+
+          <!-- Execute Button -->
+          <div class="flex items-center justify-end mt-1">
+            <button id="btn-humanize" onclick="runHumanization()" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-400 hover:to-rose-400 text-slate-950 font-bold text-sm shadow-lg shadow-orange-500/20 transition transform active:scale-95 flex items-center justify-center gap-2">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <span>Humanizar Texto Ahora</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Right Column: Humanized Output & Verification (6 cols) -->
+    <section class="lg:col-span-6 flex flex-col gap-4">
+      
+      <!-- Humanizer Placeholder -->
+      <div id="humanizer-placeholder" class="glass-card rounded-2xl p-8 flex flex-col items-center justify-center text-center h-full min-h-[460px]">
+        <div class="w-20 h-20 rounded-2xl bg-slate-800/50 border border-slate-700/50 flex items-center justify-center text-amber-400 text-3xl mb-4">
+          <i class="fa-solid fa-feather-pointed"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-200 mb-2">Humanizador Inteligente</h3>
+        <p class="text-sm text-slate-400 max-w-sm mb-4">
+          Introduce un texto de IA en la izquierda y pulsa <strong class="text-amber-400">"Humanizar Texto Ahora"</strong>.
+        </p>
+        <div class="space-y-1.5 text-xs text-slate-400 text-left max-w-sm bg-slate-900/60 p-3.5 rounded-xl border border-slate-800">
+          <div class="flex items-center gap-2 text-emerald-400"><i class="fa-solid fa-check text-[10px]"></i> Purgado total de clichés de IA ("cabe destacar", "a su vez", etc.)</div>
+          <div class="flex items-center gap-2 text-emerald-400"><i class="fa-solid fa-check text-[10px]"></i> Inyección de Burstiness (variación orgánica de oraciones)</div>
+          <div class="flex items-center gap-2 text-emerald-400"><i class="fa-solid fa-check text-[10px]"></i> Verificación automática de no-detección</div>
+        </div>
+      </div>
+
+      <!-- Humanizer Loading -->
+      <div id="humanizer-loading" class="hidden glass-card rounded-2xl p-8 flex flex-col items-center justify-center text-center h-full min-h-[460px]">
+        <div class="relative w-16 h-16 mb-4">
+          <div class="absolute inset-0 rounded-full border-4 border-amber-500/20"></div>
+          <div class="absolute inset-0 rounded-full border-4 border-amber-500 border-t-transparent animate-spin"></div>
+        </div>
+        <h3 class="text-base font-semibold text-slate-200 mb-1">Humanizando texto...</h3>
+        <p class="text-xs text-slate-400">Reestructurando oraciones, variando cadencia y validando con el detector...</p>
+      </div>
+
+      <!-- Humanizer Output Container -->
+      <div id="humanizer-output-container" class="hidden flex flex-col gap-4">
+        
+        <!-- Score Comparison Hero Banner -->
+        <div class="glass-card rounded-2xl p-4 md:p-5 border-l-4 border-emerald-500 bg-gradient-to-r from-emerald-950/40 to-slate-900">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs uppercase font-bold text-slate-400">Autocomprobación Antidetección</span>
+            <span id="h-reduction-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              -85% IA
+            </span>
+          </div>
+
+          <div class="flex items-center justify-between gap-4 py-2">
+            <div class="text-left">
+              <span class="text-[11px] text-slate-400 block">Antes (Original IA):</span>
+              <strong id="h-before-prob" class="text-rose-400 text-lg font-mono">98% IA</strong>
+            </div>
+
+            <div class="text-slate-600 text-xl font-bold">➔</div>
+
+            <div class="text-right">
+              <span class="text-[11px] text-slate-400 block">Ahora (Humanizado):</span>
+              <strong id="h-after-prob" class="text-emerald-400 text-xl font-mono">1.0% IA</strong>
+            </div>
+          </div>
+
+          <div class="text-[11px] text-slate-300 pt-2 border-t border-slate-800 flex justify-between">
+            <span>Método: <strong id="h-method-used" class="text-indigo-300 font-medium">Algorítmico Multicapa</strong></span>
+            <span>Clichés purgados: <strong id="h-cliches-purged" class="text-amber-400 font-medium">4</strong></span>
+          </div>
+        </div>
+
+        <!-- Humanized Result Box -->
+        <div class="glass-card rounded-2xl p-5 flex flex-col flex-1">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-semibold text-white flex items-center gap-2">
+                <i class="fa-solid fa-circle-check text-emerald-400"></i> Resultado Humanizado
+              </span>
+              <!-- Toggle Clean vs Diff -->
+              <div class="flex items-center bg-slate-800/80 p-0.5 rounded-lg border border-slate-700 text-[11px]">
+                <button id="btn-view-clean" onclick="setHumanizerView('clean')" class="px-2.5 py-0.5 rounded bg-indigo-600 text-white font-medium transition">Limpio</button>
+                <button id="btn-view-diff" onclick="setHumanizerView('diff')" class="px-2.5 py-0.5 rounded text-slate-400 hover:text-white transition">Diff (Cambios)</button>
+              </div>
+            </div>
+            <span id="h-out-word-counter" class="text-xs text-slate-400 font-mono">(0 palabras)</span>
+          </div>
+
+          <div id="humanized-text-output" class="bg-slate-900/90 p-4 rounded-xl border border-slate-800 text-slate-100 text-sm md:text-base leading-relaxed min-h-[220px] max-h-[360px] overflow-y-auto font-normal whitespace-pre-wrap">
+            <!-- Populated via JS -->
+          </div>
+
+          <!-- Bottom Action Buttons -->
+          <div class="mt-4 pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <button onclick="copyHumanizedText()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700/60">
+                <i class="fa-solid fa-copy text-indigo-400"></i>
+                <span>Copiar Texto</span>
+              </button>
+              <button onclick="downloadHumanizedTxt()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700/60">
+                <i class="fa-solid fa-download text-emerald-400"></i>
+                <span>Descargar TXT</span>
+              </button>
+            </div>
+
+            <button onclick="testInDetector()" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-md shadow-indigo-600/30">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>⚡ Probar en el Detector</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Sentence Detail Modal -->
+  <div id="sentence-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="closeSentenceModal(event)">
+    <div class="glass-card rounded-2xl max-w-lg w-full p-6" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between mb-3">
+        <h4 id="modal-title" class="text-sm font-bold text-white">Detalle de la Oración</h4>
+        <button onclick="closeSentenceModal()" class="text-slate-400 hover:text-white text-lg">&times;</button>
+      </div>
+      <p id="modal-text" class="text-sm text-slate-200 bg-slate-900/80 p-3 rounded-xl border border-slate-800 mb-4 font-mono leading-relaxed"></p>
+      <div class="space-y-2 text-xs">
+        <div class="flex justify-between py-1 border-b border-slate-800">
+          <span class="text-slate-400">Probabilidad de IA:</span>
+          <strong id="modal-prob" class="text-rose-400">--</strong>
+        </div>
+        <div class="flex justify-between py-1 border-b border-slate-800">
+          <span class="text-slate-400">Clasificación:</span>
+          <span id="modal-tag" class="font-medium text-slate-200">--</span>
+        </div>
+        <div class="py-1">
+          <span class="text-slate-400">Motivo del diagnóstico:</span>
+          <p id="modal-reason" class="text-slate-300 mt-1"></p>
+        </div>
+      </div>
+      <div class="mt-5 text-right">
+        <button onclick="closeSentenceModal()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 glass-card px-4 py-3 rounded-xl flex items-center gap-3 border border-indigo-500/30">
+    <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400"></i>
+    <span id="toast-msg" class="text-xs font-medium text-slate-200">Notificación</span>
+  </div>
+
+  <footer class="max-w-7xl mx-auto w-full mt-6 text-center text-xs text-slate-500">
+    VeritasAI Pro &copy; 2026 &bull; Detección y Humanización de Texto de IA &bull; Compatible con ChatGPT, Gemini, Claude, Perplexity
+  </footer>
+
+  <script>
+    let currentAnalysis = null;
+    let currentHumanizedResult = null;
+
+    // Tab Switching Logic
+    function switchTab(tab) {
+      const viewDetector = document.getElementById('view-detector');
+      const viewHumanizer = document.getElementById('view-humanizer');
+      const btnDetector = document.getElementById('tab-btn-detector');
+      const btnHumanizer = document.getElementById('tab-btn-humanizer');
+
+      if (tab === 'detector') {
+        viewDetector.classList.remove('hidden');
+        viewHumanizer.classList.add('hidden');
+        btnDetector.className = 'nav-tab-active px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center gap-2 transition duration-200';
+        btnHumanizer.className = 'nav-tab-inactive px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center gap-2 transition duration-200';
+      } else {
+        viewDetector.classList.add('hidden');
+        viewHumanizer.classList.remove('hidden');
+        btnDetector.className = 'nav-tab-inactive px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center gap-2 transition duration-200';
+        btnHumanizer.className = 'nav-tab-active px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center gap-2 transition duration-200';
+      }
+    }
+
+    function toggleApiKeyInput() {
+      const c = document.getElementById('api-key-container');
+      c.classList.toggle('hidden');
+    }
+
+    function showToast(msg, isSuccess = true) {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      const toastIcon = document.getElementById('toast-icon');
+
+      toastMsg.innerText = msg;
+      toastIcon.className = isSuccess ? 'fa-solid fa-circle-check text-emerald-400' : 'fa-solid fa-circle-exclamation text-rose-400';
+
+      toast.classList.remove('translate-y-20', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-20', 'opacity-0');
+      }, 3500);
+    }
+
+    function updateCounters() {
+      const text = document.getElementById('input-text').value;
+      const chars = text.length;
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      document.getElementById('char-word-counter').innerText = `(${words} palabras | ${chars} caracteres)`;
+    }
+
+    function updateHumanizerCounters() {
+      const text = document.getElementById('humanize-input-text').value;
+      const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+      document.getElementById('h-char-word-counter').innerText = `(${words} palabras)`;
+    }
+
+    function clearText() {
+      document.getElementById('input-text').value = '';
+      document.getElementById('file-input').value = '';
+      document.getElementById('file-status').innerText = '';
+      updateCounters();
+      document.getElementById('results-placeholder').classList.remove('hidden');
+      document.getElementById('results-loading').classList.add('hidden');
+      document.getElementById('results-container').classList.add('hidden');
+      currentAnalysis = null;
+    }
+
+    async function loadSample(type) {
+      try {
+        const res = await fetch(`/api/sample/${type}`);
+        const data = await res.json();
+        if (data.sample) {
+          document.getElementById('input-text').value = data.sample;
+          updateCounters();
+          showToast(`Ejemplo de ${type.toUpperCase()} cargado. Haz clic en "Detectar IA"`);
+        }
+      } catch (err) {
+        showToast("Error al cargar ejemplo", false);
+      }
+    }
+
+    async function handleFileUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      document.getElementById('file-status').innerText = `Cargando ${file.name}...`;
+
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+
+        if (data.error) {
+          showToast(data.error, false);
+          document.getElementById('file-status').innerText = 'Error al leer archivo';
+          return;
+        }
+
+        if (data.extracted_text) {
+          document.getElementById('input-text').value = data.extracted_text;
+          updateCounters();
+          document.getElementById('file-status').innerText = `✓ ${file.name} cargado`;
+          showToast(`Archivo ${file.name} procesado exitosamente`);
+          if (data.analysis) {
+            renderResults(data.analysis);
+          }
+        }
+      } catch (err) {
+        showToast("Error de conexión al subir archivo", false);
+        document.getElementById('file-status').innerText = 'Error';
+      }
+    }
+
+    async function runDetection() {
+      const text = document.getElementById('input-text').value.trim();
+      if (!text) {
+        showToast("Por favor ingresa un texto para analizar.", false);
+        return;
+      }
+
+      const words = text.split(/\s+/).length;
+      if (words < 10) {
+        showToast("El texto es muy corto (mínimo 10 palabras).", false);
+        return;
+      }
+
+      // UI States
+      document.getElementById('results-placeholder').classList.add('hidden');
+      document.getElementById('results-loading').classList.remove('hidden');
+      document.getElementById('results-container').classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/detect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: text })
+        });
+        const data = await res.json();
+
+        document.getElementById('results-loading').classList.add('hidden');
+
+        if (data.error) {
+          showToast(data.error, false);
+          document.getElementById('results-placeholder').classList.remove('hidden');
+          return;
+        }
+
+        renderResults(data);
+      } catch (err) {
+        document.getElementById('results-loading').classList.add('hidden');
+        document.getElementById('results-placeholder').classList.remove('hidden');
+        showToast("Error al conectar con el servidor", false);
+      }
+    }
+
+    function renderResults(res) {
+      currentAnalysis = res;
+      document.getElementById('results-container').classList.remove('hidden');
+
+      // Gauge Circle Animation
+      const aiProb = res.ai_probability;
+      const humanProb = res.human_probability;
+
+      document.getElementById('ai-percent-display').innerText = `${aiProb}%`;
+      document.getElementById('ai-percent-text').innerText = `${aiProb}%`;
+      document.getElementById('human-percent-text').innerText = `${humanProb}%`;
+
+      document.getElementById('ai-progress-bar').style.width = `${aiProb}%`;
+      document.getElementById('human-progress-bar').style.width = `${humanProb}%`;
+
+      // Circular gauge formula (circumference ~ 251.2)
+      const offset = 251.2 - (251.2 * (aiProb / 100));
+      const gaugeCircle = document.getElementById('gauge-circle');
+      gaugeCircle.style.strokeDashoffset = offset;
+
+      // Color coding gauge
+      let badgeClass = '';
+      let strokeColor = '';
+
+      if (aiProb >= 75) {
+        strokeColor = '#ef4444';
+        badgeClass = 'bg-rose-500/20 text-rose-300 border border-rose-500/30';
+        document.getElementById('humanize-suggestion-bar').classList.remove('hidden');
+      } else if (aiProb >= 45) {
+        strokeColor = '#f59e0b';
+        badgeClass = 'bg-amber-500/20 text-amber-300 border border-amber-500/30';
+        document.getElementById('humanize-suggestion-bar').classList.remove('hidden');
+      } else {
+        strokeColor = '#10b981';
+        badgeClass = 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        document.getElementById('humanize-suggestion-bar').classList.add('hidden');
+      }
+
+      gaugeCircle.style.stroke = strokeColor;
+      
+      const badgeElem = document.getElementById('verdict-badge');
+      badgeElem.className = `px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${badgeClass}`;
+      badgeElem.innerText = res.verdict.title;
+
+      document.getElementById('verdict-card-border').style.borderTopColor = strokeColor;
+      document.getElementById('verdict-description').innerText = res.verdict.description;
+      document.getElementById('model-attribution').innerText = res.metrics.dominant_model || "Neutral";
+
+      // Metrics
+      document.getElementById('metric-burstiness-val').innerText = res.metrics.burstiness.value;
+      document.getElementById('metric-burstiness-status').innerText = res.metrics.burstiness.status;
+
+      document.getElementById('metric-perplexity-val').innerText = res.metrics.perplexity.value;
+      document.getElementById('metric-perplexity-status').innerText = res.metrics.perplexity.status;
+
+      document.getElementById('metric-ttr-val').innerText = res.metrics.lexical_diversity.value;
+      document.getElementById('metric-ttr-status').innerText = `${res.metrics.lexical_diversity.unique_words} palabras únicas`;
+
+      document.getElementById('metric-cliche-val').innerText = `${res.metrics.ai_phrases_detected.count} halladas`;
+      document.getElementById('metric-cliche-status').innerText = res.metrics.ai_phrases_detected.count > 0 ? 'Expresiones típicas detectadas' : 'Lenguaje natural y fluido';
+
+      // Forensic Signals
+      if (res.metrics.forensic_signals) {
+        const fs = res.metrics.forensic_signals;
+        document.getElementById('forensic-range').innerText = `±${fs.sent_len_range} pal.`;
+        document.getElementById('forensic-punct').innerText = `${fs.punct_entropy}`;
+        document.getElementById('forensic-1st').innerText = `${fs.pronoun_1st_density}%`;
+        document.getElementById('forensic-yule').innerText = `${fs.yules_k}`;
+      }
+
+      // Heatmap rendering
+      const heatmapBox = document.getElementById('heatmap-render-box');
+      heatmapBox.innerHTML = '';
+
+      res.sentence_heatmap.forEach((sent, idx) => {
+        const span = document.createElement('span');
+        span.className = `sent-${sent.label}`;
+        span.innerText = sent.text + ' ';
+        span.onclick = () => openSentenceModal(sent);
+        heatmapBox.appendChild(span);
+      });
+
+      const summary = res.sentence_summary;
+      document.getElementById('sentence-stats-summary').innerText = 
+        `${summary.total} oraciones (${summary.ai_sentences} IA, ${summary.hybrid_sentences} híbridas, ${summary.human_sentences} humanas)`;
+
+      showToast("¡Análisis completado con éxito!");
+    }
+
+    function openSentenceModal(sent) {
+      document.getElementById('modal-text').innerText = `"${sent.text}"`;
+      document.getElementById('modal-prob').innerText = `${sent.ai_probability}%`;
+      document.getElementById('modal-tag').innerText = sent.tag;
+      document.getElementById('modal-reason').innerText = sent.reason;
+      document.getElementById('sentence-modal').classList.remove('hidden');
+    }
+
+    function closeSentenceModal(e) {
+      document.getElementById('sentence-modal').classList.add('hidden');
+    }
+
+    function copyReport() {
+      if (!currentAnalysis) return;
+      const r = currentAnalysis;
+      const report = `=== REPORTE DE DETECCIÓN VERITAS AI ===\nVeredicto: ${r.verdict.title} (IA: ${r.ai_probability}% | Humano: ${r.human_probability}%)\nFirma Dominante: ${r.metrics.dominant_model}\nCadencia (Burstiness): ${r.metrics.burstiness.value} (${r.metrics.burstiness.status})\nPerplejidad: ${r.metrics.perplexity.value} (${r.metrics.perplexity.status})\nRiqueza Léxica: ${r.metrics.lexical_diversity.value}\nClichés de IA encontrados: ${r.metrics.ai_phrases_detected.count}\nOraciones Analizadas: ${r.sentence_summary.total} (${r.sentence_summary.ai_sentences} IA, ${r.sentence_summary.human_sentences} humanas)\n======================================`;
+      navigator.clipboard.writeText(report).then(() => {
+        showToast("Reporte copiado al portapapeles");
+      });
+    }
+
+    async function downloadPdfReport() {
+      const text = document.getElementById('input-text').value.trim();
+      if (!text) {
+        showToast("No hay texto para generar el reporte.", false);
+        return;
+      }
+      showToast("Generando informe forense PDF...");
+      try {
+        const res = await fetch('/api/export-pdf', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: text })
+        });
+        if (!res.ok) throw new Error("Error al generar PDF");
+        const blob = await res.blob();
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `informe_forense_veritas_${Date.now()}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showToast("¡Informe PDF descargado exitosamente!");
+      } catch (err) {
+        showToast("Fallo al generar informe PDF", false);
+      }
+    }
+
+    // ==========================================
+    // HUMANIZER LOGIC
+    // ==========================================
+    let currentHumanizerView = 'clean';
+
+    function setHumanizerView(view) {
+      currentHumanizerView = view;
+      const btnClean = document.getElementById('btn-view-clean');
+      const btnDiff = document.getElementById('btn-view-diff');
+      const outBox = document.getElementById('humanized-text-output');
+
+      if (!currentHumanizedResult) return;
+
+      if (view === 'clean') {
+        btnClean.className = 'px-2.5 py-0.5 rounded bg-indigo-600 text-white font-medium transition';
+        btnDiff.className = 'px-2.5 py-0.5 rounded text-slate-400 hover:text-white transition';
+        outBox.innerText = currentHumanizedResult.humanized_text;
+      } else {
+        btnDiff.className = 'px-2.5 py-0.5 rounded bg-indigo-600 text-white font-medium transition';
+        btnClean.className = 'px-2.5 py-0.5 rounded text-slate-400 hover:text-white transition';
+        outBox.innerHTML = currentHumanizedResult.diff_html || currentHumanizedResult.humanized_text;
+      }
+    }
+
+    function sendToHumanizer() {
+      const text = document.getElementById('input-text').value.trim();
+      if (!text) return;
+      document.getElementById('humanize-input-text').value = text;
+      updateHumanizerCounters();
+      switchTab('humanizer');
+      showToast("Texto transferido al Humanizador.");
+    }
+
+    function pasteFromDetector() {
+      const text = document.getElementById('input-text').value.trim();
+      if (!text) {
+        showToast("No hay texto cargado en el detector.", false);
+        return;
+      }
+      document.getElementById('humanize-input-text').value = text;
+      updateHumanizerCounters();
+      showToast("Texto pegado desde el detector");
+    }
+
+    async function runHumanization() {
+      const text = document.getElementById('humanize-input-text').value.trim();
+      if (!text) {
+        showToast("Por favor ingresa un texto para humanizar.", false);
+        return;
+      }
+
+      const mode = document.getElementById('humanize-mode').value;
+      const apiKey = document.getElementById('groq-api-key').value.trim();
+
+      // UI States
+      document.getElementById('humanizer-placeholder').classList.add('hidden');
+      document.getElementById('humanizer-loading').classList.remove('hidden');
+      document.getElementById('humanizer-output-container').classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/humanize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: text,
+            mode: mode,
+            api_key: apiKey || null
+          })
+        });
+        const data = await res.json();
+
+        document.getElementById('humanizer-loading').classList.add('hidden');
+
+        if (data.error) {
+          showToast(data.error, false);
+          document.getElementById('humanizer-placeholder').classList.remove('hidden');
+          return;
+        }
+
+        renderHumanizedResult(data);
+      } catch (err) {
+        document.getElementById('humanizer-loading').classList.add('hidden');
+        document.getElementById('humanizer-placeholder').classList.remove('hidden');
+        showToast("Error al humanizar el texto", false);
+      }
+    }
+
+    function renderHumanizedResult(data) {
+      currentHumanizedResult = data;
+      document.getElementById('humanizer-output-container').classList.remove('hidden');
+
+      // Before & After Stats
+      const ba = data.before_after;
+      document.getElementById('h-before-prob').innerText = `${ba.original_ai_prob}% IA`;
+      document.getElementById('h-after-prob').innerText = `${ba.humanized_ai_prob}% IA`;
+      document.getElementById('h-reduction-badge').innerText = ba.ai_reduction;
+      document.getElementById('h-method-used').innerText = data.method_used;
+      document.getElementById('h-cliches-purged').innerText = data.cliches_removed;
+
+      // Render default view (clean)
+      setHumanizerView('clean');
+
+      const words = data.humanized_text.split(/\s+/).length;
+      document.getElementById('h-out-word-counter').innerText = `(${words} palabras)`;
+
+      showToast("¡Texto humanizado con éxito y verificado!");
+    }
+
+    function copyHumanizedText() {
+      if (!currentHumanizedResult) return;
+      navigator.clipboard.writeText(currentHumanizedResult.humanized_text).then(() => {
+        showToast("Texto humanizado copiado al portapapeles");
+      });
+    }
+
+    function downloadHumanizedTxt() {
+      if (!currentHumanizedResult) return;
+      const blob = new Blob([currentHumanizedResult.humanized_text], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'texto_humanizado_veritas.txt';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast("Archivo texto_humanizado_veritas.txt descargado");
+    }
+
+    function testInDetector() {
+      if (!currentHumanizedResult) return;
+      document.getElementById('input-text').value = currentHumanizedResult.humanized_text;
+      updateCounters();
+      switchTab('detector');
+      runDetection();
+    }
+  </script>
+</body>
+</html>

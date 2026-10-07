@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.git/
+.gitignore
+desktop_app.py
+*.bat
+.env
+.venv/
+env/
