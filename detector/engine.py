@@ -177,16 +177,30 @@ class AIDetectorEngine:
 
         # 3. Calibración combinada Multicapa
         pronoun_1st_density = features.get("pronoun_1st_density", 0.0)
+        safe_count = sum(1 for s in sentence_details if s["label"] == "safe")
+        warning_count = sum(1 for s in sentence_details if s["label"] == "warning")
+        danger_count = sum(1 for s in sentence_details if s["label"] == "danger")
+        total_s = max(1, len(sentence_details))
 
-        # Si el modelo neuronal predice firmemente IA (> 70%) o hay clichés explícitos:
-        if nn_ai_prob >= 70.0 or cliche_count >= 1 or danger_ratio >= 0.40:
+        safe_ratio = safe_count / total_s
+        danger_ratio = danger_count / total_s
+        warning_ratio = warning_count / total_s
+
+        # CASO 1: TEXTO HÍBRIDO / MIXTO (Contiene tanto oraciones genuinamente humanas como oraciones de IA)
+        if safe_count >= 2 and danger_count >= 1 and total_s >= 3:
+            # Calibración ponderada por segmento: refleja con exactitud qué porción es de IA
+            segment_ai_score = (danger_ratio * 92.0) + (warning_ratio * 45.0) + (safe_ratio * 2.0)
+            adjusted_score = max(42.0, min(72.0, segment_ai_score + (cliche_count * 4.0)))
+
+        # CASO 2: TEXTO PREDOMINANTEMENTE IA (o con alta densidad de peligro/firmas)
+        elif nn_ai_prob >= 70.0 or cliche_count >= 1 or danger_ratio >= 0.40:
             adjusted_score = max(nn_ai_prob, (0.70 * nn_ai_prob) + (0.30 * avg_sentence_score))
             if cliche_count >= 1:
                 adjusted_score = max(adjusted_score, min(99.5, 65.0 + (cliche_count * 12.0)))
             if danger_ratio >= 0.50:
                 adjusted_score = max(adjusted_score, 88.0)
 
-        # Si el modelo neuronal predice firmemente HUMANO (< 22%) y no hay peligro ni clichés:
+        # CASO 3: TEXTO PREDOMINANTEMENTE HUMANO (sin peligro ni clichés)
         elif nn_ai_prob < 22.0 and cliche_count == 0 and danger_count == 0:
             # Para catalogar como 100% humano con certeza, debe tener cadencia natural o primera persona
             if burstiness > 0.35 or pronoun_1st_density > 0.3:
@@ -197,7 +211,7 @@ class AIDetectorEngine:
             else:
                 adjusted_score = min(nn_ai_prob, avg_sentence_score * 0.8)
 
-        # Caso intermedio (híbrido, formal o con señales mixtas):
+        # CASO 4: INTERMEDIO / FORMAL
         else:
             adjusted_score = (0.65 * nn_ai_prob) + (0.35 * avg_sentence_score)
             if cliche_count == 0 and danger_ratio == 0:
@@ -207,7 +221,7 @@ class AIDetectorEngine:
                     adjusted_score = min(adjusted_score * 0.75, 19.0)
 
         # Burstiness muy baja (<0.26) con texto extenso y sin marcas humanas = alta sospecha de IA
-        if burstiness < 0.26 and total_words > 40 and pronoun_1st_density < 0.2:
+        if burstiness < 0.26 and total_words > 40 and pronoun_1st_density < 0.2 and danger_count >= 1:
             adjusted_score = min(99.5, max(adjusted_score, 78.0) * 1.1 + (cliche_count * 5.0))
 
         # Delimitar probabilidad final entre 1.0% y 99.2%
@@ -219,11 +233,11 @@ class AIDetectorEngine:
             verdict_badge = "Generado por IA"
             verdict_color = "red"
             verdict_desc = "El texto muestra patrones inequívocos de modelos como ChatGPT, Gemini, Claude o Perplexity: cadencia uniforme, baja perplejidad y conectores sintéticos."
-        elif final_ai_prob >= 45.0:
+        elif final_ai_prob >= 38.0:
             verdict_badge = "Texto Híbrido / Asistido por IA"
             verdict_color = "yellow"
             verdict_desc = "El texto combina elementos naturales con estructuras o frases típicas de inteligencia artificial. Es posible que haya sido editado o reescrito con IA."
-        elif final_ai_prob >= 20.0:
+        elif final_ai_prob >= 15.0:
             verdict_badge = "Mayormente Humano"
             verdict_color = "blue"
             verdict_desc = "Predominan características humanas como variabilidad de ritmo y espontaneidad, aunque contiene ligeras expresiones formales."
