@@ -10,42 +10,40 @@ from typing import Dict, List, Tuple
 
 # Expresiones y clichés típicos de ChatGPT / OpenAI (GPT-4, 4o, o1)
 CHATGPT_PHRASES_ES = [
-    r"\ben un mundo cada vez más\b",
-    r"\bdesempeña un papel fundamental\b",
-    r"\bdesempeña un papel crucial\b",
-    r"\bjuega un papel fundamental\b",
-    r"\bjuega un papel crucial\b",
-    r"\bcabe destacar que\b",
-    r"\bcabe mencionar que\b",
-    r"\bes fundamental (?:destacar|recordar|entender|mencionar|tener en cuenta)\b",
-    r"\bes importante (?:destacar|recordar|entender|mencionar|resaltar|señalar)\b",
-    r"\bes crucial (?:comprender|destacar|entender|considerar|encontrar)\b",
-    r"\ben este sentido\b",
-    r"\ben última instancia\b",
-    r"\ba su vez\b",
-    r"\ben resumen,\b",
-    r"\ben conclusión,\b",
-    r"\bpara concluir,\b",
+    r"\ben un mundo cada vez m[aá]s\b",
+    r"\b(?:desempe[nñ]a|juega|cumple)?\s*un papel (?:crucial|fundamental|clave)\b",
+    r"\bcabe (?:destacar|mencionar|resaltar)(?: que)?\b",
+    r"\bes fundamental (?:destacar|recordar|entender|mencionar|tener en cuenta|se[nñ]alar)\b",
+    r"\bes importante (?:destacar|recordar|entender|mencionar|resaltar|se[nñ]alar)\b",
+    r"\bes crucial (?:comprender|destacar|entender|considerar|encontrar|se[nñ]alar)\b",
+    r"\ben este sentido,?\b",
+    r"\ben [uú]ltima instancia,?\b",
+    r"\ba su vez,?\b",
+    r"\ben resumen,?\b",
+    r"\ben conclusi[oó]n,?\b",
+    r"\bpara concluir,?\b",
     r"\bde vital importancia\b",
     r"\bun tapiz de\b",
     r"\bun testimonio de\b",
     r"\bun faro de\b",
     r"\badentrarse en\b",
     r"\bprofundizar en\b",
-    r"\ben el panorama (?:actual|digital|moderno|contemporáneo)\b",
-    r"\bno solo [^.,;]+ sino también\b",
+    r"\ben el panorama (?:actual|digital|moderno|contempor[aá]neo)\b",
+    r"\bno solo [^.,;]+ sino tambi[eé]n\b",
     r"\bun recordatorio de que\b",
-    r"\ben constante evolución\b",
+    r"\ben constante evoluci[oó]n\b",
     r"\bofrece una amplia gama de\b",
     r"\bfomentar un ambiente\b",
     r"\buna espada de doble filo\b",
     r"\ben el gran esquema de las cosas\b",
-    r"\bvale la pena señalar que\b",
+    r"\bvale la pena se[nñ]alar(?: que)?\b",
     r"\bun equilibrio delicado entre\b",
     r"\buna pieza angular\b",
     r"\buna piedra angular\b",
     r"\bcamino por recorrer\b",
-    r"\bqueda mucho por hacer\b"
+    r"\bqueda mucho por hacer\b",
+    r"\ben nuestro planeta\b",
+    r"\ben nuestra sociedad\b"
 ]
 
 CHATGPT_PHRASES_EN = [
@@ -82,17 +80,17 @@ CHATGPT_PHRASES_EN = [
 
 # Expresiones de Gemini (Google)
 GEMINI_PHRASES_ES = [
-    r"\baquí tienes un desglose\b",
+    r"\baqu[ií] tienes un desglose\b",
     r"\bexploremos\b",
     r"\bpuntos clave:\b",
-    r"\ba continuación se presentan\b",
-    r"\ben términos generales\b",
-    r"\bveamos más de cerca\b",
+    r"\ba continuaci[oó]n se presentan\b",
+    r"\ben t[eé]rminos generales,?\b",
+    r"\bveamos m[aá]s de cerca\b",
     r"\bcomo modelo de lenguaje\b",
     r"\ben resumen:\b",
     r"\bdesglose detallado\b",
     r"\baspectos destacados:\b",
-    r"\ben resumidas cuentas\b"
+    r"\ben resumidas cuentas,?\b"
 ]
 
 GEMINI_PHRASES_EN = [
@@ -109,12 +107,12 @@ GEMINI_PHRASES_EN = [
 # Expresiones de Claude / Anthropic
 CLAUDE_PHRASES_ES = [
     r"\bes importante reconocer que\b",
-    r"\bsi bien existen argumentos válidos\b",
+    r"\bsi bien existen argumentos v[aá]lidos\b",
     r"\buna perspectiva matizada\b",
     r"\bconviene ser cauteloso\b",
     r"\bes crucial sopesar\b",
     r"\bdesde una perspectiva equilibrada\b",
-    r"\bresulta prudente señalar\b"
+    r"\bresulta prudente se[nñ]alar\b"
 ]
 
 CLAUDE_PHRASES_EN = [
@@ -129,9 +127,9 @@ CLAUDE_PHRASES_EN = [
 
 # Expresiones de Perplexity
 PERPLEXITY_PHRASES_ES = [
-    r"\bsegún los hallazgos recientes\b",
+    r"\bseg[uú]n los hallazgos recientes\b",
     r"\blos estudios sugieren que\b",
-    r"\bla evidencia señala que\b",
+    r"\bla evidencia se[nñ]ala que\b",
     r"\blos datos indican que\b",
     r"\bde acuerdo con las fuentes\b",
     r"\ben base a investigaciones recientes\b"

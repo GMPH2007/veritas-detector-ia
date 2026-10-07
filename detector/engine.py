@@ -15,7 +15,8 @@ from detector.features import (
     split_into_sentences,
     tokenize_words,
     calculate_char_ngram_entropy,
-    calculate_shannon_entropy
+    calculate_shannon_entropy,
+    ALL_PRONOUNS_1ST
 )
 from detector.fingerprints import detect_cliches_and_signatures
 
@@ -41,13 +42,15 @@ class AIDetectorEngine:
     def analyze_sentence(self, sentence: str, global_burstiness: float) -> Dict[str, Any]:
         """
         Analiza una oración individual para generar el mapa de calor (Heatmap).
+        Calibrado forense: oraciones humanas estándar inician en rango seguro (6.0 - 8.0%),
+        reconociendo pronombres en primera persona y puntuación expresiva como sellos humanos.
         """
         words = tokenize_words(sentence)
         n_words = len(words)
         if n_words < 3:
             return {
                 "text": sentence,
-                "ai_probability": 10.0,
+                "ai_probability": 3.0,
                 "label": "safe",
                 "tag": "Muy corta para evaluar",
                 "reason": "Frase breve o fragmento."
@@ -61,39 +64,46 @@ class AIDetectorEngine:
         char_entropy = calculate_char_ngram_entropy(sentence, n=3)
         word_entropy = calculate_shannon_entropy(words)
 
-        # 3. Puntuación heurística de la oración
-        score = 25.0  # Base neutral
+        # 3. Puntuación heurística de la oración (base segura para textos humanos normales)
+        score = 8.0  # Base segura por defecto
 
-        # Clichés pesan fuertemente
+        # Clichés de LLM pesan fuertemente
         if has_cliche:
-            score += 45.0 * fp["total_hits"]
+            score += 55.0 * fp["total_hits"]
 
-        # Entropía baja = muy predecible
-        if char_entropy < 3.2:
-            score += 20.0
-        elif char_entropy > 4.5:
-            score -= 15.0
+        # Entropía baja = muy predecible (sintaxis algorítmica)
+        if char_entropy < 3.1:
+            score += 25.0
+        elif char_entropy > 4.4:
+            score -= 12.0
 
-        # Longitud y simetría típica de LLMs (18-35 palabras, ritmo monótono)
-        if 16 <= n_words <= 32:
-            score += 15.0
-        elif n_words < 8 or n_words > 45:
+        # Longitud y simetría típica de LLMs: solo se penaliza si la cadencia global del texto es monótona
+        if global_burstiness < 0.32:
+            if 16 <= n_words <= 32:
+                score += 15.0
+        elif global_burstiness > 0.50:
             score -= 10.0
 
-        # Si el texto global tiene burstiness muy baja, las oraciones son más sospechosas
-        if global_burstiness < 0.35:
-            score += 10.0
-        elif global_burstiness > 0.65:
-            score -= 15.0
+        # Frases muy cortas (< 8 palabras) o muy extensas/espontáneas (> 36 palabras) son marcas humanas
+        if n_words < 8 or n_words > 36:
+            score -= 10.0
 
-        score = max(2.0, min(99.0, score))
+        # Presencia de primera persona en la oración (marca de autoría y subjetividad humana)
+        if any(w in ALL_PRONOUNS_1ST for w in words):
+            score -= 18.0
+
+        # Puntuación dialógica o expresiva (¿, ?, ¡, !, ..., comillas)
+        if any(p in sentence for p in ['¿', '?', '¡', '!', '...', '…', '"', '“', '”']):
+            score -= 12.0
+
+        score = max(1.5, min(99.0, score))
 
         # Determinar etiqueta de color
-        if score >= 70.0:
+        if score >= 65.0:
             label = "danger"
             tag = "Alta probabilidad de IA"
             reason = f"Frase altamente predecible o con conectores típicos de LLMs ({fp['dominant_signature'] if has_cliche else 'Sintaxis uniforme'})."
-        elif score >= 45.0:
+        elif score >= 38.0:
             label = "warning"
             tag = "Posible asistencia de IA"
             reason = "Estructura intermedia con vocabulario formal o predecible."
@@ -166,22 +176,39 @@ class AIDetectorEngine:
         danger_ratio = danger_count / max(1, len(sentence_details))
 
         # 3. Calibración combinada Multicapa
-        adjusted_score = (0.6 * nn_ai_prob) + (0.4 * avg_sentence_score)
+        pronoun_1st_density = features.get("pronoun_1st_density", 0.0)
 
-        # Clichés de IA aumentan fuertemente la probabilidad
-        if cliche_count >= 1:
-            adjusted_score = max(adjusted_score, min(99.0, 50.0 + (cliche_count * 15.0)))
+        # Si el modelo neuronal predice firmemente IA (> 70%) o hay clichés explícitos:
+        if nn_ai_prob >= 70.0 or cliche_count >= 1 or danger_ratio >= 0.40:
+            adjusted_score = max(nn_ai_prob, (0.70 * nn_ai_prob) + (0.30 * avg_sentence_score))
+            if cliche_count >= 1:
+                adjusted_score = max(adjusted_score, min(99.5, 65.0 + (cliche_count * 12.0)))
+            if danger_ratio >= 0.50:
+                adjusted_score = max(adjusted_score, 88.0)
 
-        # Si no hay clichés, ni oraciones en peligro, y la cadencia (burstiness) es alta:
-        if cliche_count == 0 and danger_ratio == 0:
-            if burstiness > 0.55:
-                adjusted_score = min(adjusted_score * 0.45, avg_sentence_score)
-            elif burstiness > 0.40:
-                adjusted_score = min(adjusted_score * 0.70, avg_sentence_score * 1.1)
+        # Si el modelo neuronal predice firmemente HUMANO (< 22%) y no hay peligro ni clichés:
+        elif nn_ai_prob < 22.0 and cliche_count == 0 and danger_count == 0:
+            # Para catalogar como 100% humano con certeza, debe tener cadencia natural o primera persona
+            if burstiness > 0.35 or pronoun_1st_density > 0.3:
+                adjusted_score = min(nn_ai_prob, avg_sentence_score * 0.7, 5.0)
+            elif burstiness < 0.22 and pronoun_1st_density == 0.0:
+                # Cadencia anormalmente monótona sin voz personal (típica de LLM formal sin clichés)
+                adjusted_score = max(nn_ai_prob * 1.5, 62.0)
+            else:
+                adjusted_score = min(nn_ai_prob, avg_sentence_score * 0.8)
 
-        # Burstiness muy baja (<0.32) con muchas palabras = alta sospecha de IA
-        if burstiness < 0.32 and total_words > 40:
-            adjusted_score = min(99.5, adjusted_score * 1.15 + 10.0)
+        # Caso intermedio (híbrido, formal o con señales mixtas):
+        else:
+            adjusted_score = (0.65 * nn_ai_prob) + (0.35 * avg_sentence_score)
+            if cliche_count == 0 and danger_ratio == 0:
+                if burstiness > 0.50 or pronoun_1st_density > 0.8:
+                    adjusted_score = min(adjusted_score * 0.55, 12.0)
+                elif burstiness > 0.38:
+                    adjusted_score = min(adjusted_score * 0.75, 19.0)
+
+        # Burstiness muy baja (<0.26) con texto extenso y sin marcas humanas = alta sospecha de IA
+        if burstiness < 0.26 and total_words > 40 and pronoun_1st_density < 0.2:
+            adjusted_score = min(99.5, max(adjusted_score, 78.0) * 1.1 + (cliche_count * 5.0))
 
         # Delimitar probabilidad final entre 1.0% y 99.2%
         final_ai_prob = round(max(1.0, min(99.2, adjusted_score)), 1)

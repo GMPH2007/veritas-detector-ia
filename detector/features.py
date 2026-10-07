@@ -35,8 +35,12 @@ STOPWORDS_EN = {
 
 ALL_STOPWORDS = STOPWORDS_ES.union(STOPWORDS_EN)
 
-PRONOUNS_1ST_ES = {"yo", "me", "mi", "mis", "conmigo", "nosotros", "nos", "nuestro", "nuestra", "nuestros", "nuestras"}
-PRONOUNS_1ST_EN = {"i", "me", "my", "mine", "myself", "we", "us", "our", "ours", "ourselves"}
+PRONOUNS_SINGULAR_1ST_ES = {"yo", "me", "mi", "mis", "mí", "conmigo"}
+PRONOUNS_SINGULAR_1ST_EN = {"i", "me", "my", "mine", "myself"}
+ALL_PRONOUNS_SINGULAR_1ST = PRONOUNS_SINGULAR_1ST_ES.union(PRONOUNS_SINGULAR_1ST_EN)
+
+PRONOUNS_1ST_ES = {"yo", "me", "mi", "mis", "mí", "conmigo", "nosotros", "nosotras", "nos"}
+PRONOUNS_1ST_EN = {"i", "me", "my", "mine", "myself", "we", "us"}
 ALL_PRONOUNS_1ST = PRONOUNS_1ST_ES.union(PRONOUNS_1ST_EN)
 
 
