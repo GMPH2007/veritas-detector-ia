@@ -7,7 +7,7 @@ Provee API REST e Interfaz Gráfica interactiva con mapa de calor.
 import os
 import uvicorn
 from fastapi import FastAPI, UploadFile, File, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse, Response
+from fastapi.responses import HTMLResponse, JSONResponse, Response, FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import Optional
@@ -125,6 +125,13 @@ async def get_sample(sample_type: str):
     if not sample:
         return JSONResponse(status_code=404, content={"error": "Tipo de ejemplo desconocido."})
     return JSONResponse(content={"sample": sample, "type": sample_type})
+
+@app.get("/download-source-zip")
+async def download_source_zip():
+    zip_path = os.path.join(os.path.dirname(__file__), "veritas_detector_cloud.zip")
+    if not os.path.exists(zip_path):
+        raise HTTPException(status_code=404, detail="Archivo zip no encontrado.")
+    return FileResponse(zip_path, filename="veritas_detector_cloud.zip", media_type="application/zip")
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
