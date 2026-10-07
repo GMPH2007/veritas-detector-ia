@@ -133,6 +133,27 @@ async def download_source_zip():
         raise HTTPException(status_code=404, detail="Archivo zip no encontrado.")
     return FileResponse(zip_path, filename="veritas_detector_cloud.zip", media_type="application/zip")
 
+@app.get("/sitemap.xml")
+async def get_sitemap():
+    content = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://veritas-detector-ia.onrender.com/</loc>
+    <lastmod>2026-10-06</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>"""
+    return Response(content=content, media_type="application/xml")
+
+@app.get("/robots.txt")
+async def get_robots_txt():
+    content = """User-agent: *
+Allow: /
+Sitemap: https://veritas-detector-ia.onrender.com/sitemap.xml
+"""
+    return Response(content=content, media_type="text/plain")
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     host = os.environ.get("HOST", "0.0.0.0")
